@@ -1,0 +1,129 @@
+install.packages("metafor")
+install.packages('tidyverse')
+require(metafor)
+require(tidyverse)
+
+### create data tables for studies
+rct <- tribble(
+  ~study, ~Country, ~InterventionS, ~InterventionF, ~ControlS, ~ControlF, ~order, ~Outcome,
+  "Ibraheem et al. 2017", "Ilorin, Nigeria", 352, 11, 140, 21, 6, "Y/N",
+  "Prinja et al. 2017", "IUttar Pradesh, India", 60, 13, 55, 20, 5, "Four or more", 
+  "Bush et al. 2017", "Wyoming, USA", 60, 25, 2974, 2184, 4, "Six months or more",
+  "Coleman et al. 2017", "Johannesburg, South Africa", 60, 13, 55, 39, 3, "Four or More",
+  "Shiferaw et al. 2016", "Ethiopia", 168, 454, 141, 461, 2, "Four or More", 
+  "Lund et al 2014", "Zanzibar, Tanzania", 574, 737, 385, 854, 1, "Four or More"
+  
+)
+
+### decrease margins so the full space is used
+par(mar=c(4,4,1,2))
+
+### calculate (log) risk ratios and corresponding sampling variances
+rct.dat <- escalc(measure="OR", ai=InterventionS, bi=InterventionF, ci=ControlS, di=ControlF, data=rct)
+
+### fit random-effects models
+rct.res <- rma(yi, vi, data=rct.dat, slab=study)
+
+### cumulative meta-analysis (in the order of publication year)
+rct.tmp <- cumul(rct.res, order=order(rct$order))
+
+### cumulative forest plot
+forest(rct.tmp, xlim=c(-4,2), at=log(c(0.5, 1, 2, 3, 4, 5)), 
+       atransf=exp, digits=c(2,3), cex=0.75)
+
+#Normal Plot
+forest(rct.res, xlim=c(-16, 6), at=log(c(0.5, 1, 2, 3, 4, 5)), atransf=exp,
+       ilab=cbind(rct.dat$Country, rct.dat$Outcome, rct.dat$InterventionS, rct.dat$InterventionF, rct.dat$ControlS, rct.dat$ControlF),
+       ilab.xpos=c(-10.25,-7.5,-6,-4.5,-3,-1.5), cex=1.2,
+       order=order(rct.dat$order),
+       xlab="Odds Ratio", mlab="", psize=1)
+
+### add text with Q-value, dfs, p-value, and I^2 statistic
+text(-16, -1, pos=4, cex=1, bquote(paste("RE Model for All Studies (Q = ",
+                                            .(formatC(rct.res$QE, digits=2, format="f")), ", df = ", .(rct.res$k - rct.res$p),
+                                            ", p = ", .(formatC(rct.res$QEp, digits=2, format="f")), "; ", I^2, " = ",
+                                            .(formatC(rct.res$I2, digits=1, format="f")), "%)")))
+
+### set font expansion factor (as in forest() above) and use bold italic
+### font and save original settings in object 'op'
+op <- par(cex=0.75, font=4)
+
+### switch to bold font
+par(font=2)
+
+### add column headings to the plot
+text(c(-6,-4.5,-3,-1.5), 7.25, c("Success", "Failure", "Success", "Failure"))
+text(c(-10.25),     7.25, c("Country"))
+text(c(-7.5),     7.25, c("Outcome Reported"))
+text(c(-5,-2.5),     7.75, c("Intervention", "Control"))
+text(-15,                7.25, "Author(s) and Year")
+text(4.5,                  7.25, "Risk Ratio [95% CI]")
+text(c(-1.3, 1.3)                 ,-.25, c("Control More Effective", 'Intervention More Effective'))
+
+### Funnel Plot for RCT
+### draw funnel plots
+funnel(rct.res, main="Standard Error")
+
+### Studies with Only 4 or more
+
+
+### create data tables for studies
+rct <- tribble(
+  ~study, ~Country, ~InterventionS, ~InterventionF, ~ControlS, ~ControlF, ~order, ~Outcome,
+  
+  "Prinja et al. 2017", "IUttar Pradesh, India", 60, 13, 55, 20, 4, "Four or more", 
+  
+  "Coleman et al. 2017", "Johannesburg, South Africa", 60, 13, 55, 39, 3, "Four or More",
+  "Shiferaw et al. 2016", "Ethiopia", 168, 454, 141, 461, 2, "Four or More", 
+  "Lund et al 2014", "Zanzibar, Tanzania", 574, 737, 385, 854, 1, "Four or More"
+  
+)
+
+### decrease margins so the full space is used
+par(mar=c(4,4,1,2))
+
+### calculate (log) risk ratios and corresponding sampling variances
+rct.dat <- escalc(measure="OR", ai=InterventionS, bi=InterventionF, ci=ControlS, di=ControlF, data=rct)
+
+### fit random-effects models
+rct.res <- rma(yi, vi, data=rct.dat, slab=study)
+
+### cumulative meta-analysis (in the order of publication year)
+rct.tmp <- cumul(rct.res, order=order(rct$order))
+
+### cumulative forest plot
+forest(rct.tmp, xlim=c(-4,2), at=log(c(0.5, 1, 2, 3, 4, 5)), 
+       atransf=exp, digits=c(2,3), cex=0.75)
+
+#Normal Plot
+forest(rct.res, xlim=c(-16, 6), at=log(c(0.5, 1, 2, 3, 4, 5)), atransf=exp,
+       ilab=cbind(rct.dat$Country, rct.dat$Outcome, rct.dat$InterventionS, rct.dat$InterventionF, rct.dat$ControlS, rct.dat$ControlF),
+       ilab.xpos=c(-10.25,-7.5,-6,-4.5,-3,-1.5), cex=1.2,
+       order=order(rct.dat$order),
+       xlab="Odds Ratio", mlab="", psize=1)
+
+### add text with Q-value, dfs, p-value, and I^2 statistic
+text(-16, -1, pos=4, cex=1, bquote(paste("RE Model for All Studies (Q = ",
+                                         .(formatC(rct.res$QE, digits=2, format="f")), ", df = ", .(rct.res$k - rct.res$p),
+                                         ", p = ", .(formatC(rct.res$QEp, digits=2, format="f")), "; ", I^2, " = ",
+                                         .(formatC(rct.res$I2, digits=1, format="f")), "%)")))
+
+### set font expansion factor (as in forest() above) and use bold italic
+### font and save original settings in object 'op'
+op <- par(cex=0.75, font=4)
+
+### switch to bold font
+par(font=2)
+
+### add column headings to the plot
+text(c(-6,-4.5,-3,-1.5), 5.25, c("Success", "Failure", "Success", "Failure"))
+text(c(-10.25),     5.25, c("Country"))
+text(c(-7.5),     5.25, c("Outcome Reported"))
+text(c(-5,-2.5),     5.75, c("Intervention", "Control"))
+text(-15,                5.25, "Author(s) and Year")
+text(4.5,                  5.25, "Risk Ratio [95% CI]")
+text(c(-1.3, 1.3)                 ,-.25, c("Control More Effective", 'Intervention More Effective'))
+
+### Funnel Plot for Retrospective
+### draw funnel plots
+funnel(rct.res, main="Standard Error")
